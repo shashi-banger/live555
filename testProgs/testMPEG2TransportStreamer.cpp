@@ -21,6 +21,8 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 #include "liveMedia.hh"
 #include "BasicUsageEnvironment.hh"
 #include "GroupsockHelper.hh"
+#include <cstdio>
+#include <cstdlib>
 
 // To stream using "source-specific multicast" (SSM), uncomment the following:
 //#define USE_SSM 1
@@ -46,22 +48,31 @@ RTPSink* videoSink;
 void play(); // forward
 
 int main(int argc, char** argv) {
+
+  if(argc < 4) {
+      printf("Usage: testMPEG2TransportStreamer <input_fifo> <output_ip> <output_port>");
+      exit(1);
+  }
+
   // Begin by setting up our usage environment:
   TaskScheduler* scheduler = BasicTaskScheduler::createNew();
   env = BasicUsageEnvironment::createNew(*scheduler);
 
+  inputFileName = argv[1];
+
   // Create 'groupsocks' for RTP and RTCP:
   char const* destinationAddressStr
 #ifdef USE_SSM
-    = "232.255.42.42";
+    = argv[2];//"232.255.42.42";
 #else
-  = "239.255.42.42";
+  = argv[2]; //"239.255.42.42";
   // Note: This is a multicast address.  If you wish to stream using
   // unicast instead, then replace this string with the unicast address
   // of the (single) destination.  (You may also need to make a similar
   // change to the receiver program.)
 #endif
-  const unsigned short rtpPortNum = 1234;
+  
+  const unsigned short rtpPortNum = (unsigned short)atoi(argv[3]);
   const unsigned short rtcpPortNum = rtpPortNum+1;
   const unsigned char ttl = 7; // low, in case routers don't admin scope
 
