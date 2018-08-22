@@ -64,6 +64,33 @@ int main(int argc, char** argv) {
   // access to the server.
 #endif
 
+  char input_ip[1024] = {0};
+  char out_stream_name[1024] = {0};
+  int  input_port = 0;
+  bool is_unicast = false;
+  int opt;
+
+  while ((opt = getopt(argc, argv, "p:i:n:u:")) != -1) {
+      switch (opt) {
+          case 'i':
+              snprintf (input_ip, 1024, optarg);
+              break;
+          case 'n':
+              snprintf (out_stream_name, 1024, optarg);
+              break;
+          case 'p':
+              input_port = atoi (optarg);
+              break;
+          case 'u':
+              is_unicast = atoi (optarg);
+              break;
+          default: /* '?' */
+              fprintf(stderr, "Usage: %s -i <multicast_ip(optional)> -p <input_port(optional)>"
+                      " -n <stream_name(optional)> -u <is_unicast(0/1)(optional)> \n",
+                      argv[0]);
+              exit(EXIT_FAILURE);
+      }
+  }
   // Create the RTSP server:
   RTSPServer* rtspServer = RTSPServer::createNew(*env, 8554, authDB);
   if (rtspServer == NULL) {
@@ -403,11 +430,22 @@ int main(int argc, char** argv) {
 
   // A MPEG-2 Transport Stream, coming from a live UDP (raw-UDP or RTP/UDP) source:
   {
-    char const* streamName = "mpeg2TransportStreamFromUDPSourceTest";
-    char const* inputAddressStr = "239.255.42.42";
+    char streamName[1024];
+    char inputAddressStr[1024];
+
+    snprintf (streamName, 1024, "mpeg2TSFromUDPSource");
+    snprintf (inputAddressStr, 1024, "239.255.42.42");
+    if (strlen (out_stream_name) > 0)
+        snprintf (streamName, 1024, out_stream_name);
+    if (strlen (input_ip) > 0)
+        snprintf (inputAddressStr, 1024, input_ip);
+    if (is_unicast)
+        inputAddressStr[0] = 0;
         // This causes the server to take its input from the stream sent by the "testMPEG2TransportStreamer" demo application.
         // (Note: If the input UDP source is unicast rather than multicast, then change this to NULL.)
-    portNumBits const inputPortNum = 1234;
+    portNumBits inputPortNum = 1234;
+    if (input_port > 0)
+        inputPortNum = input_port;
         // This causes the server to take its input from the stream sent by the "testMPEG2TransportStreamer" demo application.
     Boolean const inputStreamIsRawUDP = False;
     ServerMediaSession* sms
@@ -419,7 +457,7 @@ int main(int argc, char** argv) {
 
     char* url = rtspServer->rtspURL(sms);
     *env << "\n\"" << streamName << "\" stream, from a UDP Transport Stream input source \n\t(";
-    if (inputAddressStr != NULL) {
+    if (strlen (inputAddressStr) > 0) {
       *env << "IP multicast address " << inputAddressStr << ",";
     } else {
       *env << "unicast;";
