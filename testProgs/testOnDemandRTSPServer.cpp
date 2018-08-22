@@ -71,7 +71,7 @@ int main(int argc, char** argv) {
   bool is_unicast = false;
   int opt;
 
-  while ((opt = getopt(argc, argv, "p:i:n:u:o:")) != -1) {
+  while ((opt = getopt(argc, argv, "h:p:i:n:u:o:")) != -1) {
       switch (opt) {
           case 'i':
               snprintf (input_ip, 1024, optarg);
@@ -88,9 +88,11 @@ int main(int argc, char** argv) {
           case 'o':
               output_port = atoi (optarg);
               break;
+          case 'h':
           default: /* '?' */
               fprintf(stderr, "Usage: %s -i <multicast_ip(optional)> -p <input_port(optional)>"
-                      " -n <stream_name(optional)> -u <is_unicast(0/1)(optional)> \n",
+                      " -n <stream_name(optional)> -u <is_unicast(0/1)(optional)>"
+                      " -o <output_port(optional)>\n",
                       argv[0]);
               exit(EXIT_FAILURE);
       }
