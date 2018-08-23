@@ -67,10 +67,11 @@ int main(int argc, char** argv) {
   char input_ip[1024] = {0};
   char out_stream_name[1024] = {0};
   int  input_port = 0;
+  int  output_port = 8554;
   bool is_unicast = false;
   int opt;
 
-  while ((opt = getopt(argc, argv, "p:i:n:u:")) != -1) {
+  while ((opt = getopt(argc, argv, "h:p:i:n:u:o:")) != -1) {
       switch (opt) {
           case 'i':
               snprintf (input_ip, 1024, optarg);
@@ -84,15 +85,20 @@ int main(int argc, char** argv) {
           case 'u':
               is_unicast = atoi (optarg);
               break;
+          case 'o':
+              output_port = atoi (optarg);
+              break;
+          case 'h':
           default: /* '?' */
               fprintf(stderr, "Usage: %s -i <multicast_ip(optional)> -p <input_port(optional)>"
-                      " -n <stream_name(optional)> -u <is_unicast(0/1)(optional)> \n",
+                      " -n <stream_name(optional)> -u <is_unicast(0/1)(optional)>"
+                      " -o <output_port(optional)>\n",
                       argv[0]);
               exit(EXIT_FAILURE);
       }
   }
   // Create the RTSP server:
-  RTSPServer* rtspServer = RTSPServer::createNew(*env, 8554, authDB);
+  RTSPServer* rtspServer = RTSPServer::createNew(*env, output_port, authDB);
   if (rtspServer == NULL) {
     *env << "Failed to create RTSP server: " << env->getResultMsg() << "\n";
     exit(1);
